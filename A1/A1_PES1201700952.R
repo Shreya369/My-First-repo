@@ -1,0 +1,192 @@
+# Assignment-1
+
+#Name: Gagana G. S.
+#SRN: PES1201700952
+
+getwd()
+#path
+path=setwd("C:/Users/Shivaprasad/Desktop/3rd year/DATA ANALYTICS/A1")
+
+
+
+
+#Reading the datasets
+employee_survey_data <- read.csv("employee_survey_data.csv")
+general_data<-read.csv("general_data.csv")
+manager_survey_data<-read.csv("manager_survey_data.csv")
+
+#Preparing the dataset
+#Removing all tuples having na values
+employee_survey_data_na<-na.omit(employee_survey_data)
+general_data_na<-na.omit(general_data)
+manager_survey_data_na<-na.omit(manager_survey_data)
+
+#Performing natural join on the 3 datasets
+fdataset <- merge(employee_survey_data_na,general_data_na,by="EmployeeID")
+#final dataset is fds
+fds<-merge(fdataset,manager_survey_data_na,by="EmployeeID")
+
+
+#Question-1
+#1 a. 
+
+#Finding the upper limit of age attribute and applying ceil operation(as interval needs to be in 10's)
+m<-max(fds$Age)
+#print(m)
+if(m%%10!=0){
+  m1<-((m/10 +1) * 10)
+}else{
+  m1<-m
+}
+#Creating the subset of the dataset as age>=20
+d<-fds[!(fds$Age<20),]
+hist(d$Age,
+     main="Histogram on different age groups",
+     xlab="Age",
+     ylab="Frequency",
+     breaks=c(seq(20,m1,10)))
+
+
+
+#Nature of the graph is not symmetric
+#Its skewed towards right or positively skewed
+
+#To pick the interval with maximum average income
+t=mean(d$MonthlyIncome[d$Age>=20 & d$Age<30])
+l=20
+u=30
+i=1
+j=1
+m1<-t
+while(i<=3){
+  t=mean(d$MonthlyIncome[d$Age>=(l+i*10) &   d$Age<(u+i*10)])
+  if(t>m1){
+    m1=t
+    j=i
+  }
+  i=i+1
+  
+}
+#Prints the maximum average monthly income
+print(m1)
+#Calucates and prints the lower limit of the age interval whose average monthly salary is maximum
+l1=l+j*10
+l2=u*10
+print(l1)
+#Therefore the interval is 40-50
+
+
+#The interval with maximum average Monthly Income belongs to the age group 40-50
+
+
+#1 b. 
+#Extracting the tuples whose age belongs to interval 40-49
+b1=d[d$Age>=40 & d$Age<50,]
+
+# Ordering in descending order based on Monthly Income
+b2=b1[order(-b1$MonthlyIncome),]
+
+#Extracting only 3 columns
+b3 = data.frame(employeeID=b2$EmployeeID, MonthlyIncome=b2$MonthlyIncome, TotalWorkingYears=b2$TotalWorkingYears)
+#Extracting unique salaries
+salary=unique(b3$MonthlyIncome)
+#print(salary[6])
+#Printing rows with 5 highest Monthly Income 
+b4=b3[which(b3$MonthlyIncome>salary[6]),]
+print(b4)
+
+#1 c.
+
+
+#Extracting unique job roles
+jrole=unique(b1$JobRole)
+print(jrole)
+i=1
+s1=c()
+#Valculates average income on each job roles
+while(i<=9){
+  s1[i]=mean(b1$MonthlyIncome[b1$JobRole==jrole[i]])
+  i=i+1
+  
+}
+print(s1)
+#margin=par(mar=c(11,5,4,1))
+par(mar = c(11.5,5,2,1), mgp = c(4, 1, 0))
+barplot(s1,main="Bar graph of the average income of each job role",ylab="Average Income",xlab="",las=2,names.arg=jrole,cex.lab=1.2,cex.axis=0.75)
+title(xlab="Job Role", cex.lab=1.2,cex.axis=0.75,mgp=c(10.3,1,0)) 
+
+
+#Question-2
+
+
+
+f1<-fds[fds$Gender=="Female",]
+# Stacked Bar Plot with Colors and Legend
+count1 <- table(f1$MaritalStatus, f1$EnvironmentSatisfaction)
+print(count1)
+
+barplot(count1, main="Females in each group for each level of environment satisfaction",  xlab="Environmental satisfaction", col=c("red","darkblue","yellow"),
+        beside=TRUE)
+legend(legend = rownames(count1),fill = c("red","darkblue","yellow"),"topleft")
+
+#Question-3
+
+count2=table(fds$Department,fds$Attrition)
+
+print(count2)
+p1=count2[1,2]/(count2[1,1]+count2[1,2])
+p2=count2[2,2]/(count2[3,1]+count2[3,2])
+p3=count2[3,2]/(count2[3,1]+count2[3,2])
+res=min(p1,p2,p3)
+#Required percentage is res
+#print("The department with least attrition in terms of percentage of employees in that department")
+if(res==p1){
+  print("Human Resources")
+}else if(res==p2){
+  print("Research & Development")
+}else{
+  print("Sales")
+}
+
+#The department with least attrition in terms of percentage of employees in that department is Sales
+
+#Question-4
+#4 a.
+
+
+input= fds[,c('MonthlyIncome','EducationField')]
+print(head(input))
+par(mar = c(8,7,3,1)) 
+bp=boxplot(MonthlyIncome ~ EducationField, data = fds, xlab = "",
+           ylab = "Monthly Income", main = "Distribution of monthly incomes of the various education fields.",las=3)
+title(xlab="Education Fields", mgp = c(5, 1, 0))
+
+
+
+#Summary statistics 
+tapply(fds$MonthlyIncome,fds$EducationField,summary)
+
+#4 b.
+f7<-fds[fds$Gender=="Female",]
+f8<-fds[fds$Gender=="Male",]
+print("Average salary of feamle and male respectively")
+mean(f7$MonthlyIncome)
+mean(f8$MonthlyIncome)
+print("Maximum salary of female and male respectively")
+max(f7$MonthlyIncome)
+max(f8$MonthlyIncome)
+
+
+#On calculating the average salary,maximum salary for female and male we dont find much difference in the wage
+#4 c.
+#95th percentile monthly income for the Medical Education Field.
+f5<-fds[fds$EducationField=="Medical",]
+temp = f5$MonthlyIncome    
+quantile(temp, c(.95) )
+
+#Question-5
+
+#  Skewness talks about the symmetry in the distribution. Positive skewness is when the right tail of the distribution is flat.In this case mean and median are greater than the mode.Negative skewness is when the left tail of the distribution is flat.In this case mean and median are lesser than the mode.
+
+#Kurtosis is the measure of peakedness.Kurtosis measures extreme values in either tail. Distributions with large kurtosis exhibit tail data exceeding the tails of the normal distribution (e.g., five or more standard deviations from the mean). Distributions with low kurtosis exhibit tail data that are generally less extreme than the tails of the normal distribution.
+
